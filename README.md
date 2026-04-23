@@ -4,6 +4,8 @@ RSVP Nano v2 is a small ESP32-S3 speed-reading device for reading books one word
 
 This repository is currently a hardware/firmware beta. It is usable, but the board wiring and display driver are still specific to the current prototype.
 
+The project is open source under the MIT License.
+
 ## Current Features
 
 - RSVP reader with focused anchor-letter rendering.
@@ -27,6 +29,29 @@ The current firmware target is an ESP32-S3 board profile with:
 Pin assignments are in `src/board/BoardConfig.h`. If you are building different hardware, start there and expect to update the display, touch, power, and SD wiring.
 
 ## Build And Flash
+
+### Browser Flasher
+
+For most people, the easiest route is the browser flasher in `web/index.html`. When published with GitHub Pages, it lets someone flash the firmware from Chrome or Edge without installing VS Code, PlatformIO, or Python.
+
+The flasher uses ESP Web Tools and Web Serial. It requires HTTPS or localhost.
+
+To build the merged firmware binaries used by the web flasher:
+
+```sh
+python3 tools/export_web_firmware.py
+```
+
+That script builds both firmware environments and writes:
+
+```text
+web/firmware/rsvp-nano-v2.bin
+web/firmware/rsvp-nano-v2-usb-msc.bin
+```
+
+The `.bin` files are ignored locally; the GitHub Pages workflow generates and publishes them automatically.
+
+### Developer Build
 
 Install PlatformIO Core, then from the repository root:
 

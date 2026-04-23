@@ -12,3 +12,4 @@ tools/*.rsvp
 *.rsvp.tmp
 *.rsvp.failed
 *.rsvp.converting
+web/firmware/*.bin

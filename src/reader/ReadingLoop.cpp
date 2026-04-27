@@ -334,6 +334,19 @@ uint16_t clampPacingDelayMs(uint16_t delayMs) {
   return delayMs;
 }
 
+uint8_t clampScalePercent(uint8_t percent) {
+  if (percent < 25) {
+    return 25;
+  }
+  return percent;
+}
+
+uint16_t scaledPercent(uint16_t basePercent, uint8_t scalePercent) {
+  return static_cast<uint16_t>((static_cast<uint32_t>(basePercent) *
+                                static_cast<uint32_t>(clampScalePercent(scalePercent))) /
+                               100UL);
+}
+
 uint32_t scaledDelayMs(uint16_t bonusPercent, uint16_t delayMs) {
   return (static_cast<uint32_t>(bonusPercent) *
           static_cast<uint32_t>(clampPacingDelayMs(delayMs))) /
@@ -448,10 +461,16 @@ uint32_t durationForWord(const String &word, bool nextWordStartsLowercase, uint3
   }
 
   uint32_t totalBonusMs = 0;
-  totalBonusMs += scaledDelayMs(lengthBonusPercentForWord(word), config.longWordDelayMs);
-  totalBonusMs += scaledDelayMs(complexityBonusPercentForWord(word), config.complexWordDelayMs);
   totalBonusMs += scaledDelayMs(
-      punctuationPausePercentForWord(word, nextWordStartsLowercase), config.punctuationDelayMs);
+      scaledPercent(lengthBonusPercentForWord(word), config.longWordScalePercent),
+      config.longWordDelayMs);
+  totalBonusMs += scaledDelayMs(
+      scaledPercent(complexityBonusPercentForWord(word), config.complexWordScalePercent),
+      config.complexWordDelayMs);
+  totalBonusMs +=
+      scaledDelayMs(scaledPercent(punctuationPausePercentForWord(word, nextWordStartsLowercase),
+                                  config.punctuationScalePercent),
+                    config.punctuationDelayMs);
 
   return baseIntervalMs + totalBonusMs;
 }
@@ -592,6 +611,9 @@ void ReadingLoop::setPacingConfig(const PacingConfig &config) {
   pacingConfig_.longWordDelayMs = clampPacingDelayMs(config.longWordDelayMs);
   pacingConfig_.complexWordDelayMs = clampPacingDelayMs(config.complexWordDelayMs);
   pacingConfig_.punctuationDelayMs = clampPacingDelayMs(config.punctuationDelayMs);
+  pacingConfig_.longWordScalePercent = clampScalePercent(config.longWordScalePercent);
+  pacingConfig_.complexWordScalePercent = clampScalePercent(config.complexWordScalePercent);
+  pacingConfig_.punctuationScalePercent = clampScalePercent(config.punctuationScalePercent);
 }
 
 const ReadingLoop::PacingConfig &ReadingLoop::pacingConfig() const { return pacingConfig_; }
